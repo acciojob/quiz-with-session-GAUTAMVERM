@@ -1,10 +1,4 @@
-// Initialize user answers from session storage or empty object
-let userAnswers = JSON.parse(sessionStorage.getItem('progress')) || {};
-
-const questionsElement = document.getElementById('questions');
-const submitButton = document.getElementById('submit');
-const scoreElement = document.getElementById('score');
-
+// Quiz data and elements
 const questions = [
   {
     question: "What is the capital of France?",
@@ -33,90 +27,89 @@ const questions = [
   },
 ];
 
-// Display the quiz questions and choices
+const questionsElement = document.getElementById('questions');
+const submitButton = document.getElementById('submit');
+const scoreElement = document.getElementById('score');
+
+// Initialize from session storage
+let userAnswers = JSON.parse(sessionStorage.getItem('progress')) || Array(questions.length).fill(null);
+
+// Render quiz questions
 function renderQuestions() {
   questionsElement.innerHTML = '';
   
-  for (let i = 0; i < questions.length; i++) {
-    const question = questions[i];
-    const questionElement = document.createElement("div");
-    questionElement.className = "question";
+  questions.forEach((question, qIndex) => {
+    const questionDiv = document.createElement('div');
+    questionDiv.className = 'question';
     
-    const questionText = document.createElement("h3");
+    const questionText = document.createElement('h3');
     questionText.textContent = question.question;
-    questionElement.appendChild(questionText);
+    questionDiv.appendChild(questionText);
     
-    const choicesContainer = document.createElement("div");
-    choicesContainer.className = "choices";
+    const choicesDiv = document.createElement('div');
+    choicesDiv.className = 'choices';
     
-    for (let j = 0; j < question.choices.length; j++) {
-      const choice = question.choices[j];
+    question.choices.forEach((choice, cIndex) => {
+      const choiceDiv = document.createElement('div');
+      choiceDiv.className = 'choice';
       
-      const choiceContainer = document.createElement("div");
-      choiceContainer.className = "choice";
+      const radio = document.createElement('input');
+      radio.type = 'radio';
+      radio.name = `question-${qIndex}`;
+      radio.value = choice;
+      radio.id = `q${qIndex}-c${cIndex}`;
       
-      const choiceElement = document.createElement("input");
-      choiceElement.type = "radio";
-      choiceElement.name = `question-${i}`;
-      choiceElement.value = choice;
-      choiceElement.id = `q${i}-c${j}`;
-      
-      // Set both property and attribute for checked state
-      if (userAnswers[i] === choice) {
-        choiceElement.checked = true;
-        choiceElement.setAttribute('checked', 'checked'); // This makes it visible in DOM
+      // Set checked state from session storage
+      if (userAnswers[qIndex] === choice) {
+        radio.checked = true;
+        radio.setAttribute('checked', 'checked'); // Explicit attribute for Cypress
       }
       
-      choiceElement.addEventListener('change', () => {
-        userAnswers[i] = choice;
+      radio.addEventListener('change', () => {
+        userAnswers[qIndex] = choice;
         sessionStorage.setItem('progress', JSON.stringify(userAnswers));
       });
       
-      const choiceLabel = document.createElement("label");
-      choiceLabel.htmlFor = `q${i}-c${j}`;
-      choiceLabel.textContent = choice;
+      const label = document.createElement('label');
+      label.htmlFor = `q${qIndex}-c${cIndex}`;
+      label.textContent = choice;
       
-      choiceContainer.appendChild(choiceElement);
-      choiceContainer.appendChild(choiceLabel);
-      choicesContainer.appendChild(choiceContainer);
-    }
+      choiceDiv.appendChild(radio);
+      choiceDiv.appendChild(label);
+      choicesDiv.appendChild(choiceDiv);
+    });
     
-    questionElement.appendChild(choicesContainer);
-    questionsElement.appendChild(questionElement);
-  }
+    questionDiv.appendChild(choicesDiv);
+    questionsElement.appendChild(questionDiv);
+  });
 }
 
-// Calculate and display the score
+// Calculate and display score
 function calculateScore() {
   let score = 0;
-  
-  for (let i = 0; i < questions.length; i++) {
-    if (userAnswers[i] === questions[i].answer) {
-      score++;
-    }
-  }
+  questions.forEach((q, i) => {
+    if (userAnswers[i] === q.answer) score++;
+  });
   
   scoreElement.textContent = `Your score is ${score} out of ${questions.length}.`;
-  
-  // Store just the score number in localStorage to match test expectation
   localStorage.setItem('score', score.toString());
   
-  // Clear session storage after submission
+  // Clear progress after submission
   sessionStorage.removeItem('progress');
-  userAnswers = {};
+  userAnswers = Array(questions.length).fill(null);
 }
 
-// Check for previous score in local storage
+// Check for previous score
 function checkPreviousScore() {
-  const previousScore = localStorage.getItem('score');
-  if (previousScore) {
-    scoreElement.textContent = `Your previous score was ${previousScore} out of ${questions.length}.`;
+  const savedScore = localStorage.getItem('score');
+  if (savedScore) {
+    scoreElement.textContent = `Your previous score was ${savedScore} out of ${questions.length}.`;
   }
 }
 
-// Initialize the quiz
+// Initialize quiz
 renderQuestions();
 checkPreviousScore();
 
-// Event listener for submit button
+// Event listeners
 submitButton.addEventListener('click', calculateScore);
