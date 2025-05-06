@@ -1,5 +1,5 @@
 // Initialize user answers from session storage or empty object
-let userAnswers = JSON.parse(sessionStorage.getItem('quizProgress')) || {};
+let userAnswers = JSON.parse(sessionStorage.getItem('progress')) || {};
 
 const questionsElement = document.getElementById('questions');
 const submitButton = document.getElementById('submit');
@@ -35,7 +35,7 @@ const questions = [
 
 // Display the quiz questions and choices
 function renderQuestions() {
-  questionsElement.innerHTML = ''; // Clear existing questions
+  questionsElement.innerHTML = '';
   
   for (let i = 0; i < questions.length; i++) {
     const question = questions[i];
@@ -43,7 +43,7 @@ function renderQuestions() {
     questionElement.className = "question";
     
     const questionText = document.createElement("h3");
-    questionText.textContent = question.question; // Removed question number to match test
+    questionText.textContent = question.question;
     questionElement.appendChild(questionText);
     
     const choicesContainer = document.createElement("div");
@@ -56,24 +56,22 @@ function renderQuestions() {
       choiceContainer.className = "choice";
       
       const choiceElement = document.createElement("input");
-      choiceElement.setAttribute("type", "radio");
-      choiceElement.setAttribute("name", `question-${i}`);
-      choiceElement.setAttribute("value", choice);
-      choiceElement.setAttribute("id", `q${i}-c${j}`);
+      choiceElement.type = "radio";
+      choiceElement.name = `question-${i}`;
+      choiceElement.value = choice;
+      choiceElement.id = `q${i}-c${j}`;
       
-      // Check if this choice was previously selected
       if (userAnswers[i] === choice) {
-        choiceElement.setAttribute("checked", "true"); // Explicitly set checked attribute
+        choiceElement.checked = true;
       }
       
-      // Add event listener to save progress when selection changes
       choiceElement.addEventListener('change', () => {
         userAnswers[i] = choice;
-        sessionStorage.setItem('quizProgress', JSON.stringify(userAnswers));
+        sessionStorage.setItem('progress', JSON.stringify(userAnswers));
       });
       
       const choiceLabel = document.createElement("label");
-      choiceLabel.setAttribute("for", `q${i}-c${j}`);
+      choiceLabel.htmlFor = `q${i}-c${j}`;
       choiceLabel.textContent = choice;
       
       choiceContainer.appendChild(choiceElement);
@@ -98,11 +96,11 @@ function calculateScore() {
   
   scoreElement.textContent = `Your score is ${score} out of ${questions.length}.`;
   
-  // Save to local storage
-  localStorage.setItem('score', `${score}/${questions.length}`);
+  // Store just the score number in localStorage to match test expectation
+  localStorage.setItem('score', score.toString());
   
   // Clear session storage after submission
-  sessionStorage.removeItem('quizProgress');
+  sessionStorage.removeItem('progress');
   userAnswers = {};
 }
 
@@ -110,7 +108,7 @@ function calculateScore() {
 function checkPreviousScore() {
   const previousScore = localStorage.getItem('score');
   if (previousScore) {
-    scoreElement.textContent = `Your previous score was ${previousScore}.`;
+    scoreElement.textContent = `Your previous score was ${previousScore} out of ${questions.length}.`;
   }
 }
 
