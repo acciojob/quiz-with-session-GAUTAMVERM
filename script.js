@@ -61,8 +61,10 @@ function renderQuestions() {
       choiceElement.value = choice;
       choiceElement.id = `q${i}-c${j}`;
       
+      // Set both property and attribute for checked state
       if (userAnswers[i] === choice) {
         choiceElement.checked = true;
+        choiceElement.setAttribute('checked', 'checked'); // This makes it visible in DOM
       }
       
       choiceElement.addEventListener('change', () => {
