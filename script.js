@@ -43,7 +43,7 @@ function renderQuestions() {
     questionElement.className = "question";
     
     const questionText = document.createElement("h3");
-    questionText.textContent = `${i + 1}. ${question.question}`;
+    questionText.textContent = question.question; // Removed question number to match test
     questionElement.appendChild(questionText);
     
     const choicesContainer = document.createElement("div");
@@ -63,7 +63,7 @@ function renderQuestions() {
       
       // Check if this choice was previously selected
       if (userAnswers[i] === choice) {
-        choiceElement.checked = true;
+        choiceElement.setAttribute("checked", "true"); // Explicitly set checked attribute
       }
       
       // Add event listener to save progress when selection changes
@@ -99,7 +99,7 @@ function calculateScore() {
   scoreElement.textContent = `Your score is ${score} out of ${questions.length}.`;
   
   // Save to local storage
-  localStorage.setItem('quizScore', `${score}/${questions.length}`);
+  localStorage.setItem('score', `${score}/${questions.length}`);
   
   // Clear session storage after submission
   sessionStorage.removeItem('quizProgress');
@@ -108,7 +108,7 @@ function calculateScore() {
 
 // Check for previous score in local storage
 function checkPreviousScore() {
-  const previousScore = localStorage.getItem('quizScore');
+  const previousScore = localStorage.getItem('score');
   if (previousScore) {
     scoreElement.textContent = `Your previous score was ${previousScore}.`;
   }
