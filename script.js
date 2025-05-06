@@ -1,7 +1,10 @@
-//your JS code here.
+// Initialize user answers from session storage or empty object
+let userAnswers = JSON.parse(sessionStorage.getItem('quizProgress')) || {};
 
-// Do not change code below this line
-// This code will just display the questions to the screen
+const questionsElement = document.getElementById('questions');
+const submitButton = document.getElementById('submit');
+const scoreElement = document.getElementById('score');
+
 const questions = [
   {
     question: "What is the capital of France?",
@@ -32,25 +35,88 @@ const questions = [
 
 // Display the quiz questions and choices
 function renderQuestions() {
+  questionsElement.innerHTML = ''; // Clear existing questions
+  
   for (let i = 0; i < questions.length; i++) {
     const question = questions[i];
     const questionElement = document.createElement("div");
-    const questionText = document.createTextNode(question.question);
+    questionElement.className = "question";
+    
+    const questionText = document.createElement("h3");
+    questionText.textContent = `${i + 1}. ${question.question}`;
     questionElement.appendChild(questionText);
+    
+    const choicesContainer = document.createElement("div");
+    choicesContainer.className = "choices";
+    
     for (let j = 0; j < question.choices.length; j++) {
       const choice = question.choices[j];
+      
+      const choiceContainer = document.createElement("div");
+      choiceContainer.className = "choice";
+      
       const choiceElement = document.createElement("input");
       choiceElement.setAttribute("type", "radio");
       choiceElement.setAttribute("name", `question-${i}`);
       choiceElement.setAttribute("value", choice);
+      choiceElement.setAttribute("id", `q${i}-c${j}`);
+      
+      // Check if this choice was previously selected
       if (userAnswers[i] === choice) {
-        choiceElement.setAttribute("checked", true);
+        choiceElement.checked = true;
       }
-      const choiceText = document.createTextNode(choice);
-      questionElement.appendChild(choiceElement);
-      questionElement.appendChild(choiceText);
+      
+      // Add event listener to save progress when selection changes
+      choiceElement.addEventListener('change', () => {
+        userAnswers[i] = choice;
+        sessionStorage.setItem('quizProgress', JSON.stringify(userAnswers));
+      });
+      
+      const choiceLabel = document.createElement("label");
+      choiceLabel.setAttribute("for", `q${i}-c${j}`);
+      choiceLabel.textContent = choice;
+      
+      choiceContainer.appendChild(choiceElement);
+      choiceContainer.appendChild(choiceLabel);
+      choicesContainer.appendChild(choiceContainer);
     }
+    
+    questionElement.appendChild(choicesContainer);
     questionsElement.appendChild(questionElement);
   }
 }
+
+// Calculate and display the score
+function calculateScore() {
+  let score = 0;
+  
+  for (let i = 0; i < questions.length; i++) {
+    if (userAnswers[i] === questions[i].answer) {
+      score++;
+    }
+  }
+  
+  scoreElement.textContent = `Your score is ${score} out of ${questions.length}.`;
+  
+  // Save to local storage
+  localStorage.setItem('quizScore', `${score}/${questions.length}`);
+  
+  // Clear session storage after submission
+  sessionStorage.removeItem('quizProgress');
+  userAnswers = {};
+}
+
+// Check for previous score in local storage
+function checkPreviousScore() {
+  const previousScore = localStorage.getItem('quizScore');
+  if (previousScore) {
+    scoreElement.textContent = `Your previous score was ${previousScore}.`;
+  }
+}
+
+// Initialize the quiz
 renderQuestions();
+checkPreviousScore();
+
+// Event listener for submit button
+submitButton.addEventListener('click', calculateScore);
